@@ -1,0 +1,60 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+KEYWORD_COMMAND_EXECUTION_FAILED	statemachine/statemachine.c	/^  KEYWORD_COMMAND_EXECUTION_FAILED,$/;"	e	enum:__anon3	file:
+KEYWORD_COMMAND_EXECUTION_OK	statemachine/statemachine.c	/^  KEYWORD_COMMAND_EXECUTION_OK,$/;"	e	enum:__anon3	file:
+KEYWORD_LIBVIRT_CONSOLE_MSG	statemachine/statemachine.c	/^  KEYWORD_LIBVIRT_CONSOLE_MSG,$/;"	e	enum:__anon3	file:
+KEYWORD_LOGIN_PROMPT	statemachine/statemachine.c	/^  KEYWORD_LOGIN_PROMPT,$/;"	e	enum:__anon3	file:
+KEYWORD_PASSWORD_PROMPT	statemachine/statemachine.c	/^  KEYWORD_PASSWORD_PROMPT,$/;"	e	enum:__anon3	file:
+KEYWORD_ROOT_PROMPT	statemachine/statemachine.c	/^  KEYWORD_ROOT_PROMPT,$/;"	e	enum:__anon3	file:
+KEYWORD_UNDEFINED	statemachine/statemachine.c	/^  KEYWORD_UNDEFINED = 0,$/;"	e	enum:__anon3	file:
+KEYWORD_USER_PROMPT	statemachine/statemachine.c	/^  KEYWORD_USER_PROMPT,$/;"	e	enum:__anon3	file:
+RETURN_CODE_ERROR	libvirt/console.c	21;"	d	file:
+RETURN_CODE_OK	libvirt/console.c	22;"	d	file:
+STATE_ERROR	statemachine/statemachine.h	/^  STATE_ERROR,$/;"	e	enum:__anon2
+STATE_LOGIN_PROMPT_FOUND	statemachine/statemachine.h	/^  STATE_LOGIN_PROMPT_FOUND,$/;"	e	enum:__anon2
+STATE_LOGOFF	statemachine/statemachine.h	/^  STATE_LOGOFF,$/;"	e	enum:__anon2
+STATE_PASSWORD_PROMPT_FOUND	statemachine/statemachine.h	/^  STATE_PASSWORD_PROMPT_FOUND,$/;"	e	enum:__anon2
+STATE_ROOT_PROMPT_FOUND	statemachine/statemachine.h	/^  STATE_ROOT_PROMPT_FOUND,$/;"	e	enum:__anon2
+STATE_UNDEFINED	statemachine/statemachine.h	/^  STATE_UNDEFINED = 0,$/;"	e	enum:__anon2
+STATE_USER_PROMPT_FOUND	statemachine/statemachine.h	/^  STATE_USER_PROMPT_FOUND,$/;"	e	enum:__anon2
+TOKEN_CONSOLE_READY	libvirt/console.c	/^  TOKEN_CONSOLE_READY,$/;"	e	enum:__anon7	file:
+TOKEN_LOGIN	libvirt/console.c	/^  TOKEN_LOGIN,$/;"	e	enum:__anon7	file:
+TOKEN_PASSWORD	libvirt/console.c	/^  TOKEN_PASSWORD,$/;"	e	enum:__anon7	file:
+TOKEN_PROMPT	libvirt/console.c	/^  TOKEN_PROMPT,$/;"	e	enum:__anon7	file:
+TOKEN_UNDEFINED	libvirt/console.c	/^  TOKEN_UNDEFINED = 0,$/;"	e	enum:__anon7	file:
+_XOPEN_SOURCE	libvirt/console.c	2;"	d	file:
+action	statemachine/statemachine.c	/^  void *(*action)(void *);$/;"	m	struct:__anon5	file:
+argv	statemachine/statemachine.c	/^static statemachine_arg_t argv;$/;"	v	file:
+callVirshConsole	libvirt/console.c	/^int callVirshConsole(callVirshConsole_args *argv) {$/;"	f
+callVirshConsole_args	libvirt/console.h	/^} callVirshConsole_args;$/;"	t	typeref:struct:__anon6
+check_transition	statemachine/statemachine.c	/^static state_e check_transition(statemachine_arg_t *argv, state_e current_state,$/;"	f	file:
+fd	statemachine/statemachine.h	/^  int fd;$/;"	m	struct:__anon1
+from	statemachine/statemachine.c	/^  state_e from;$/;"	m	struct:__anon5	file:
+id	statemachine/statemachine.c	/^  keyword_e id;$/;"	m	struct:__anon4	file:
+keyword	statemachine/statemachine.c	/^  keyword_e keyword;$/;"	m	struct:__anon5	file:
+keyword_e	statemachine/statemachine.c	/^} keyword_e;$/;"	t	typeref:enum:__anon3	file:
+keyword_t	statemachine/statemachine.c	/^} keyword_t;$/;"	t	typeref:struct:__anon4	file:
+keywords	statemachine/statemachine.c	/^static keyword_t keywords[] = {$/;"	v	file:
+main	libvirt/main.c	/^int main(int argc, char *argv[]) {$/;"	f
+onLOGIN_PROMPT_FOUND	statemachine/statemachine.c	/^static void *onLOGIN_PROMPT_FOUND(void *argv) {$/;"	f	file:
+onPASSWORD_PROMPT_FOUND	statemachine/statemachine.c	/^static void *onPASSWORD_PROMPT_FOUND(void *argv) {$/;"	f	file:
+onROOT_PROMPT_FOUND	statemachine/statemachine.c	/^static void *onROOT_PROMPT_FOUND(void *argv) {$/;"	f	file:
+onUSER_PROMPT_FOUND	statemachine/statemachine.c	/^static void *onUSER_PROMPT_FOUND(void *argv) {$/;"	f	file:
+password	libvirt/console.h	/^  const char *password;$/;"	m	struct:__anon6
+password	statemachine/statemachine.h	/^  const char *password;$/;"	m	struct:__anon1
+state_e	statemachine/statemachine.h	/^} state_e;$/;"	t	typeref:enum:__anon2
+statemachine_arg_t	statemachine/statemachine.h	/^} statemachine_arg_t;$/;"	t	typeref:struct:__anon1
+statemachine_init	statemachine/statemachine.c	/^void statemachine_init(statemachine_arg_t *_argv) {$/;"	f
+statemachine_next	statemachine/statemachine.c	/^state_e statemachine_next(int token) {$/;"	f
+to	statemachine/statemachine.c	/^  state_e to;$/;"	m	struct:__anon5	file:
+token	statemachine/statemachine.h	/^  int token;$/;"	m	struct:__anon1
+transition_t	statemachine/statemachine.c	/^} transition_t;$/;"	t	typeref:struct:__anon5	file:
+transitions	statemachine/statemachine.c	/^static transition_t transitions[] = {$/;"	v	file:
+username	libvirt/console.h	/^  const char *username;$/;"	m	struct:__anon6
+username	statemachine/statemachine.h	/^  const char *username;$/;"	m	struct:__anon1
+vmname	libvirt/console.h	/^  char *vmname;$/;"	m	struct:__anon6
+word	statemachine/statemachine.c	/^  char word[64];$/;"	m	struct:__anon4	file:

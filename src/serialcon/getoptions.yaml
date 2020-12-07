@@ -1,0 +1,36 @@
+- option:
+    name: help
+    abbreviation: h
+    has_arg: 
+      type: no_argument
+    help_text: "Prints this help message"
+- option:
+    name: verbose
+    abbreviation: v
+    has_arg: 
+      type: no_argument
+    help_text: "Verbose output"
+- option:
+    name: serial-device
+    abbreviation: s
+    has_arg: 
+      type: required_argument 
+    help_text: "Serial device e.g. /dev/ttyUSB0 or name of libvirt domain e.g. /libvirt/1 (see virsh list)"
+- option:
+    name: username
+    abbreviation: u
+    has_arg: 
+      type: required_argument 
+    help_text: "User name used at login prompt"
+- option:
+    name: password
+    abbreviation: p
+    has_arg: 
+      type: required_argument 
+    help_text: "Password used at password prompt"
+- option:
+    name: baudrate
+    abbreviation: b
+    has_arg: 
+      type: required_argument 
+    help_text: "Baudrate to use for serial connection"
