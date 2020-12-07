@@ -7,34 +7,31 @@
 
 serialcon_connection *serialcon_Open(const char *serial_dev, uint32_t baudrate,
                                      const char *user, const char *password) {
-  serialcon_connection *sc =
-      (serialcon_connection *)malloc(sizeof(serialcon_connection));
-  if (sc) {
-    const char libvirt_prefix[] = "/libvirt/";
-    if (strstr(serial_dev, libvirt_prefix) == serial_dev) {
-      serial_dev += strlen(libvirt_prefix);
+    serialcon_connection *conn =
+        (serialcon_connection *)malloc(sizeof(serialcon_connection));
+    if (conn) {
+        conn->serial_dev = serial_dev;
+        conn->baudrate = baudrate;
+        conn->username = user;
+        conn->password = password;
 
-      callVirshConsole_args console_argv = {
-          .vmname = (char *)serial_dev,
-          .username = user,
-          .password = password,
-      };
-      int rc = libvirt_console_open(&console_argv);
-      if (rc != 0) {
-        fprintf(stderr, "error: libvirt_console_open failed\n");
-        exit(EXIT_FAILURE);
-      }
+        if (is_conn_libvirt(serial_dev)) {
+            int rc = libvirt_console_open(conn);
+            if (rc != 0) {
+                fprintf(stderr, "error: libvirt_console_open failed\n");
+                exit(EXIT_FAILURE);
+            }
+        }
     }
-
-    sc->serial_dev = serial_dev;
-    sc->baudrate = baudrate;
-    sc->username = user;
-    sc->password = password;
-  }
-  return sc;
+    return conn;
 }
 
-void serialcon_Close(serialcon_connection *conn) { free(conn); }
+void serialcon_Close(serialcon_connection *conn) {
+    if (is_conn_libvirt(conn->serial_dev)) {
+        libvirt_console_close(conn);
+    }
+    free(conn);
+}
 
 int serialcon_Run(serialcon_connection *conn, const char *cmd) {
   fprintf(stderr, "serialcon_Run\n");
@@ -43,39 +40,39 @@ int serialcon_Run(serialcon_connection *conn, const char *cmd) {
     exit(EXIT_FAILURE);
   }
 
-  callVirshConsole_args console_argv = {
-      .vmname = (char *)conn->serial_dev,
-      .username = conn->username,
-      .password = conn->password,
-  };
-  int rc = callVirshConsole(&console_argv);
-  // 0 = success, 1 = error => last command in done-list points to failed one
-  switch (rc) {
-  case 0:
-    break;
-  case 1: {
-    command_t *cmd = failed_cmd();
-    if (!cmd)
-      break;
-    printf("Command '");
-    for (int i = 0; i < strlen(cmd->cmdline); ++i) {
-      switch (cmd->cmdline[i]) {
-      case '\r':
-        printf("\\r");
-        break;
-      case '\n':
-        printf("\\n");
-        break;
-      default:
-        printf("%c", cmd->cmdline[i]);
-        break;
-      }
-    }
-    printf("' failed.\n");
-    break;
+  int rc = -1;
+  if (is_conn_libvirt(conn->serial_dev)) {
+      rc = libvirt_console_run(conn, cmd);
+  } else {
+      rc = 0;
   }
-  default:
-    break;
+  // 0 = success, 1 = error => last command in done-list points to failed
+  // one
+  switch (rc) {
+      case 0:
+          break;
+      case 1: {
+          command_t *cmd = failed_cmd();
+          if (!cmd) break;
+          printf("Command '");
+          for (int i = 0; i < strlen(cmd->cmdline); ++i) {
+              switch (cmd->cmdline[i]) {
+                  case '\r':
+                      printf("\\r");
+                      break;
+                  case '\n':
+                      printf("\\n");
+                      break;
+                  default:
+                      printf("%c", cmd->cmdline[i]);
+                      break;
+              }
+          }
+          printf("' failed.\n");
+          break;
+      }
+      default:
+          break;
   }
 
   free_cmd_list();

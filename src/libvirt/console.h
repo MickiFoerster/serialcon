@@ -1,16 +1,7 @@
 #pragma once
-#include <pthread.h>
+#include "serialcon/serialcon.h"
 
-typedef struct {
-  const char *vmname;
-  const char *username;
-  const char *password;
-  int pidChildProcess;
-  int fdParentProcess;
-  pthread_t threadParentStatemachine;
-  int stopThreadParentStatemachine;
-  void *lexer_instance;
-} callVirshConsole_args;
-
-int callVirshConsole(callVirshConsole_args *argv);
-int libvirt_console_open(callVirshConsole_args *argv);
+char *is_conn_libvirt(const char *serial_dev);
+int libvirt_console_open(serialcon_connection *conn);
+int libvirt_console_run(serialcon_connection *conn, const char *cmd);
+void libvirt_console_close(serialcon_connection *conn);

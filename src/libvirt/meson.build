@@ -9,6 +9,7 @@ serialcon_libvirt_lib = static_library(
   include_directories: [
     include_directories('.'), 
     lexer_include_dir, 
+    serialcon_include_dir, 
     statemachine_include_dir,
     commands_include_dir,
   ],
@@ -18,20 +19,21 @@ serialcon_libvirt_lib = static_library(
   c_args: cargs,
 )
 
-executable(
-  'libvirt',
-  sources: ['main.c'],
-  include_directories: [
-    include_directories('.'),
-    commands_include_dir
-  ],
-  dependencies: [
-    meson.get_compiler('c').find_library('lexer', 
-      dirs: lexer_build_dir, required: true),
-    meson.get_compiler('c').find_library('pthread', required: true)
-  ],
-  link_with: [
-    serialcon_statemachine_lib, 
-    serialcon_libvirt_lib,
-  ],
-)
+#executable(
+#  'libvirt',
+#  sources: ['main.c'],
+#  include_directories: [
+#    include_directories('.'),
+#    serialcon_include_dir, 
+#    commands_include_dir,
+#  ],
+#  dependencies: [
+#    meson.get_compiler('c').find_library('lexer', 
+#      dirs: lexer_build_dir, required: true),
+#    meson.get_compiler('c').find_library('pthread', required: true)
+#  ],
+#  link_with: [
+#    serialcon_statemachine_lib, 
+#    serialcon_libvirt_lib,
+#  ],
+#)

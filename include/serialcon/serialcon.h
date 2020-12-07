@@ -1,6 +1,7 @@
 #pragma once
-#include <stdint.h>
+#include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
   const char *serial_dev;
@@ -8,6 +9,10 @@ typedef struct {
   const char *username;
   const char *password;
   int fd;
+  int pidChildProcess;
+  pthread_t threadParentStatemachine;
+  int stopThreadParentStatemachine;
+  void *lexer_instance;
   char exitsignal[8];
   int exitcode;
 } serialcon_connection;
