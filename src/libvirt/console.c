@@ -32,6 +32,21 @@ enum {
   TOKEN_PROMPT,
 };
 
+static void *thread_wait_for_child_process(void *argv) {
+    int status;
+    serialcon_connection *conn = (serialcon_connection *)argv;
+
+    waitpid(conn->pidChildProcess, &status, 0);
+    if (WIFEXITED(status)) {
+        int exit_status = WEXITSTATUS(status);
+        printf("virsh console command exited with code %d\n", exit_status);
+        if (exit_status) exit(exit_status);
+    }
+    fprintf(stderr, "thread that waits for end of child process terminates\n");
+
+    return NULL;
+}
+
 static void *statemachine_thread(void *argv) {
     serialcon_connection *conn = (serialcon_connection *)argv;
     statemachine_arg_t statemachine_args = {
@@ -157,6 +172,18 @@ int libvirt_console_open(serialcon_connection *conn) {
     }
 
     conn->threadParentStatemachine = tid;
+
+    rc = pthread_create(&tid, NULL, thread_wait_for_child_process, conn);
+    if (rc != 0) {
+        perror("pthread_create failed");
+        return RETURN_CODE_ERROR;
+    }
+
+    rc = pthread_detach(tid);
+    if (rc != 0) {
+        perror("pthread_detach failed");
+        return RETURN_CODE_ERROR;
+    }
 
     return RETURN_CODE_OK;
 }
