@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "serialcon/statemachine.h"
+
 typedef struct {
   const char *serial_dev;
   uint32_t baudrate;
@@ -11,6 +13,9 @@ typedef struct {
   int fd;
   int pidChildProcess;
   pthread_t threadParentStatemachine;
+  state_e new_state;
+  pthread_mutex_t mtx_new_state;
+  pthread_cond_t new_state_available;
   int stopThreadParentStatemachine;
   void *lexer_instance;
   char exitsignal[8];

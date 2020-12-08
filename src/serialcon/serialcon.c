@@ -42,6 +42,7 @@ int serialcon_Run(serialcon_connection *conn, const char *cmd) {
 
   int rc = -1;
   if (is_conn_libvirt(conn->serial_dev)) {
+      printf("call is_conn_libvirt\n");
       rc = libvirt_console_run(conn, cmd);
   } else {
       rc = 0;

@@ -1,11 +1,13 @@
-#include "statemachine.h"
-#include "commands.h"
-#include "lexer.h"
+#include "serialcon/statemachine.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "commands.h"
+#include "lexer.h"
 
 typedef enum {
   KEYWORD_UNDEFINED = 0,
@@ -215,12 +217,15 @@ static void *onUSER_PROMPT_FOUND(void *argv) {
     command_t *cmd = next_cmd();
     if (!cmd) {
       const char logout_cmd[] = "exit\n";
+      fprintf(stderr, "%s:%u: no command found\n", __FILE__, __LINE__);
       write(args->fd, logout_cmd, strlen(logout_cmd));
       args->finished = true;
       break;
     } else if (strstr(cmd->cmdline, "sudo reboot") != NULL) {
       args->reboot = true;
     }
+    fprintf(stderr, "%s:%u: command %s found\n", __FILE__, __LINE__,
+            cmd->cmdline);
     write(args->fd, cmd->cmdline, strlen(cmd->cmdline));
     substate = SUBSTATE_COMMAND_EXECUTION_ONGOING;
     break;

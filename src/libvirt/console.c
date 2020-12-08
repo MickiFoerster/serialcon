@@ -2,9 +2,12 @@
 #define _XOPEN_SOURCE 600
 #endif
 
+#include "console.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,9 +18,8 @@
 #include <unistd.h>
 
 #include "commands.h"
-#include "console.h"
 #include "lexer.h"
-#include "statemachine.h"
+#include "serialcon/statemachine.h"
 
 #define RETURN_CODE_ERROR -1
 #define RETURN_CODE_OK 0
@@ -40,21 +42,25 @@ static void *statemachine_thread(void *argv) {
     statemachine_init(&statemachine_args);
     conn->lexer_instance = lexer_init(conn->fd, 5000);
     int token;
-    state_e new_state;
+    fprintf(stderr, "DEBUG: before loop %d\n",
+            conn->stopThreadParentStatemachine);
     for (; conn->stopThreadParentStatemachine == 0;) {
+        fprintf(stderr, "DEBUG: inner loop of statemachine thread:\n");
         do {
-            fprintf(stderr, "DEBUG: inner loop of statemachine thread:\n");
             if (conn->stopThreadParentStatemachine != 0) break;
             token = lexer(conn->lexer_instance);
             fprintf(stderr, "lexer returned %d\n", token);
         } while (token == -1);
-        new_state = statemachine_next(token);
-        if (new_state == STATE_EXIT || new_state == STATE_LOGIN_FAILED ||
-            new_state == STATE_COMMAND_EXECUTION_FAILED) {
-            break;
+
+        pthread_mutex_lock(&conn->mtx_new_state);
+        {
+            conn->new_state = statemachine_next(token);
+            pthread_cond_signal(&conn->new_state_available);
         }
+        pthread_mutex_unlock(&conn->mtx_new_state);
     }
 
+    fprintf(stderr, "statemachine_thread finishs now\n");
     conn->stopThreadParentStatemachine = 2;  // signal that thread exits
     return NULL;
 }
@@ -134,6 +140,8 @@ int libvirt_console_open(serialcon_connection *conn) {
     conn->fd = masterFd;
     conn->pidChildProcess = pid;
     conn->stopThreadParentStatemachine = 0;
+    pthread_mutex_init(&conn->mtx_new_state, NULL);
+    pthread_cond_init(&conn->new_state_available, NULL);
 
     pthread_t tid;
     rc = pthread_create(&tid, NULL, statemachine_thread, conn);
@@ -154,10 +162,21 @@ int libvirt_console_open(serialcon_connection *conn) {
 }
 
 int libvirt_console_run(serialcon_connection *conn, const char *cmd) {
-    if (!add_command(cmd)) {
-        fprintf(stderr, "error: could not add command '%s'\n", cmd);
-        exit(EXIT_FAILURE);
+    bool stop = false;
+    for (; !stop;) {
+        pthread_mutex_lock(&conn->mtx_new_state);
+        pthread_cond_wait(&conn->new_state_available, &conn->mtx_new_state);
+        fprintf(stderr, "statemachine has new state: %d\n", conn->new_state);
+        if (conn->new_state == STATE_EXIT ||
+            conn->new_state == STATE_LOGIN_FAILED ||
+            conn->new_state == STATE_COMMAND_EXECUTION_FAILED ||
+            conn->new_state == STATE_COMMAND_EXECUTION_OK) {
+            fprintf(stderr, "RUN finished\n");
+            stop = true;
+        }
+        pthread_mutex_unlock(&conn->mtx_new_state);
     }
+
     return 0;
 }
 

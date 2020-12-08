@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
   serialcon_connection *conn = serialcon_Open(
       args.serial_device, atoi(args.baudrate), args.username, args.password);
-  int rc = serialcon_Run(conn, "ls -l; pwd; hostname;");
+  int rc = serialcon_Run(conn, "ls -l; pwd; hostname;\n");
   switch (rc) {
   case 0:
     printf("Command was successfull\n");
