@@ -11,7 +11,6 @@ serialcon_libvirt_lib = static_library(
     lexer_include_dir, 
     serialcon_include_dir, 
     statemachine_include_dir,
-    commands_include_dir,
   ],
   link_with: [
     commands_lib,
@@ -25,7 +24,6 @@ serialcon_libvirt_lib = static_library(
 #  include_directories: [
 #    include_directories('.'),
 #    serialcon_include_dir, 
-#    commands_include_dir,
 #  ],
 #  dependencies: [
 #    meson.get_compiler('c').find_library('lexer', 

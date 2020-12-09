@@ -17,9 +17,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "commands.h"
 #include "lexer.h"
 #include "serialcon/statemachine.h"
+#include "serialcon/serialcon.h"
+#include "serialcon/commands.h"
 
 #define RETURN_CODE_ERROR -1
 #define RETURN_CODE_OK 0

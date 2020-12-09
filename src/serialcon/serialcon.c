@@ -1,5 +1,5 @@
 #include "serialcon/serialcon.h"
-#include "commands.h"
+#include "serialcon/commands.h"
 #include "console.h"
 #include <stdio.h>
 #include <stdlib.h>

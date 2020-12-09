@@ -3,7 +3,6 @@ serialcon_lib = static_library(
   sources: ['serialcon.c'],
   include_directories: [
     serialcon_include_dir, 
-    commands_include_dir,
     console_include_dir,
   ],
   c_args: cargs,

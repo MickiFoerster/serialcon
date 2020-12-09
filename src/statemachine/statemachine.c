@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "commands.h"
+#include "serialcon/commands.h"
 #include "lexer.h"
 
 typedef enum {

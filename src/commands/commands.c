@@ -1,21 +1,8 @@
-#include "commands.h"
+#include "serialcon/commands.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct list_of_cmds_s list_of_cmds_t;
-struct list_of_cmds_s {
-  command_t cmd;
-  list_of_cmds_t *next;
-};
-
-list_of_cmds_t cmd_list = {
-    .next = NULL,
-};
-list_of_cmds_t cmd_list_done = {
-    .next = NULL,
-};
-
-bool add_command(const char *cmd) {
+bool add_command(serialcon_connection *conn, const char *cmd) {
   list_of_cmds_t *new_elem = (list_of_cmds_t *)malloc(sizeof(list_of_cmds_t));
   if (!new_elem)
     return false;
@@ -32,7 +19,7 @@ bool add_command(const char *cmd) {
   return true;
 }
 
-void free_cmd_list(void) {
+void free_cmd_list(serialcon_connection *conn) {
   list_of_cmds_t *p = cmd_list.next;
   while (p != NULL) {
     list_of_cmds_t *tmp = p;
@@ -48,7 +35,7 @@ void free_cmd_list(void) {
   }
 }
 
-command_t *next_cmd(void) {
+command_t *next_cmd(serialcon_connection *conn) {
   if (!cmd_list.next)
     return NULL;
 
@@ -65,7 +52,7 @@ command_t *next_cmd(void) {
   return cmd;
 }
 
-command_t *failed_cmd(void) {
+command_t *failed_cmd(serialcon_connection *conn) {
   list_of_cmds_t *runner_through_done_list = &cmd_list_done;
   if (!cmd_list_done.next)
     return NULL;

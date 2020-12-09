@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include "serialcon/serialcon.h"
 
 typedef enum {
     STATE_UNDEFINED = 0,
@@ -16,13 +17,5 @@ typedef enum {
     STATE_REBOOT,
 } state_e;
 
-typedef struct {
-  int fd;
-  const char *username;
-  const char *password;
-  bool reboot;
-  bool finished;
-} statemachine_arg_t;
-
-void statemachine_init(statemachine_arg_t *argv);
-state_e statemachine_next(int token);
+void statemachine_init(serialcon_connection *conn);
+state_e statemachine_next(serialcon_connection *conn, int token);

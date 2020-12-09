@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
   if (!args.flag_baudrate)
     args.baudrate = "115200";
   if (!args.flag_password) {
-    printf("error: You have to provide a password\n");
+    printf("error: You have to provide a password per command-line option");
     usage(argv[0]);
     exit(1);
   }

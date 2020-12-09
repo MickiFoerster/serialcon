@@ -3,7 +3,6 @@ serialcon_statemachine_lib = static_library(
   sources: ['statemachine.c'],
   include_directories: [
     lexer_include_dir, 
-    commands_include_dir,
     serialcon_include_dir,
   ],
   dependencies: [

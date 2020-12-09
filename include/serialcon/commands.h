@@ -8,7 +8,9 @@ struct command_s {
   int exitcode;
 };
 
-bool add_command(const char *cmd);
-void free_cmd_list(void);
-command_t *next_cmd(void);
-command_t *failed_cmd(void);
+typedef struct list_of_cmds_s list_of_cmds_t;
+struct list_of_cmds_s {
+  command_t cmd;
+  list_of_cmds_t *next;
+};
+
