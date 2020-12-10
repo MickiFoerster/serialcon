@@ -1,13 +1,11 @@
-#include "serialcon/statemachine.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "serialcon/commands.h"
 #include "lexer.h"
+#include "serialcon/serialcon.h"
 
 typedef enum {
   KEYWORD_UNDEFINED = 0,
@@ -38,8 +36,8 @@ static void *onLOGIN_PROMPT_FOUND(void *argv);
 static void *onPASSWORD_PROMPT_FOUND(void *argv);
 static void *onUSER_PROMPT_FOUND(void *argv);
 static void *onROOT_PROMPT_FOUND(void *argv);
-static state_e check_transition(statemachine_arg_t *argv, state_e current_state,
-                                int token);
+static state_e check_transition(serialcon_connection *conn,
+                                state_e current_state, int token);
 static keyword_t keywords[] = {
     {
         .word = " login: ",
@@ -79,105 +77,108 @@ static keyword_t keywords[] = {
     },
 };
 
-static statemachine_arg_t argv;
-
-void statemachine_init(statemachine_arg_t *_argv) {
-  argv = *_argv;
-  for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); ++i) {
-    keyword_t *kw = &keywords[i];
-    patterns_push_back(kw->word, kw->id);
-  }
+void statemachine_init() {
+    for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); ++i) {
+        keyword_t *kw = &keywords[i];
+        patterns_push_back(kw->word, kw->id);
+    }
 }
 
-state_e statemachine_next(int token) {
-  static state_e current_state = STATE_UNDEFINED;
-  argv.reboot = false;
-  argv.finished = false;
-  switch (current_state) {
-  case STATE_UNDEFINED:
-    switch (token) {
-    case -1: {
-      const char str[] = "exit\n";
-      write(argv.fd, str, strlen(str));
-    } break;
-    case KEYWORD_LIBVIRT_CONSOLE_MSG:
-      write(argv.fd, "\n", 1);
-      break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
+state_e statemachine_next(serialcon_connection *conn, int token) {
+    static state_e current_state = STATE_UNDEFINED;
+    conn->reboot = false;
+    conn->finished = false;
+    switch (current_state) {
+        case STATE_UNDEFINED:
+            switch (token) {
+                case -1: {
+                    const char str[] = "exit\n";
+                    write(conn->fd, str, strlen(str));
+                } break;
+                case KEYWORD_LIBVIRT_CONSOLE_MSG:
+                    write(conn->fd, "\n", 1);
+                    break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_REBOOT:
+            switch (token) {
+                case -1: {
+                    const char str[] = "\n";
+                    write(conn->fd, str, strlen(str));
+                } break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_ERROR:
+            fprintf(stderr, "error state reached\n");
+            break;
+        case STATE_LOGIN_PROMPT_FOUND:
+            switch (token) {
+                case -1:
+                    fprintf(stderr, "timeout in STATE_LOGIN_PROMPT_FOUND\n");
+                    break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_PASSWORD_PROMPT_FOUND:
+        case STATE_PASSWORD_SUDO_PROMPT:
+            switch (token) {
+                case -1:
+                    fprintf(stderr, "timeout in STATE_PASSWORD_PROMPT_FOUND\n");
+                    break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_USER_PROMPT_FOUND:
+            switch (token) {
+                case -1:
+                    fprintf(stderr, "timeout in STATE_USER_PROMPT_FOUND\n");
+                    break;
+                case KEYWORD_COMMAND_EXECUTION_OK:
+                    break;
+                case KEYWORD_COMMAND_EXECUTION_FAILED:
+                    current_state = STATE_COMMAND_EXECUTION_FAILED;
+                    break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_ROOT_PROMPT_FOUND:
+            switch (token) {
+                case -1:
+                    fprintf(stderr, "timeout in STATE_ROOT_PROMPT_FOUND\n");
+                    break;
+                default:
+                    current_state =
+                        check_transition(conn, current_state, token);
+                    break;
+            }
+            break;
+        case STATE_EXIT:
+            assert(0 && "state exit may not happen");
+            break;
+        default:
+            fprintf(stderr, "unexpected current state %d\n", current_state);
+            assert(0 && "unexpected current state");
+            break;
     }
-    break;
-  case STATE_REBOOT:
-    switch (token) {
-    case -1: {
-      const char str[] = "\n";
-      write(argv.fd, str, strlen(str));
-    } break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
-    }
-    break;
-  case STATE_ERROR:
-    fprintf(stderr, "error state reached\n");
-    break;
-  case STATE_LOGIN_PROMPT_FOUND:
-    switch (token) {
-    case -1:
-      fprintf(stderr, "timeout in STATE_LOGIN_PROMPT_FOUND\n");
-      break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
-    }
-    break;
-  case STATE_PASSWORD_PROMPT_FOUND:
-  case STATE_PASSWORD_SUDO_PROMPT:
-    switch (token) {
-    case -1:
-      fprintf(stderr, "timeout in STATE_PASSWORD_PROMPT_FOUND\n");
-      break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
-    }
-    break;
-  case STATE_USER_PROMPT_FOUND:
-    switch (token) {
-    case -1:
-      fprintf(stderr, "timeout in STATE_USER_PROMPT_FOUND\n");
-      break;
-    case KEYWORD_COMMAND_EXECUTION_OK:
-      break;
-    case KEYWORD_COMMAND_EXECUTION_FAILED:
-      current_state = STATE_COMMAND_EXECUTION_FAILED;
-      break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
-    }
-    break;
-  case STATE_ROOT_PROMPT_FOUND:
-    switch (token) {
-    case -1:
-      fprintf(stderr, "timeout in STATE_ROOT_PROMPT_FOUND\n");
-      break;
-    default:
-      current_state = check_transition(&argv, current_state, token);
-      break;
-    }
-    break;
-  case STATE_EXIT:
-    assert(0 && "state exit may not happen");
-    break;
-  default:
-    fprintf(stderr, "unexpected current state %d\n", current_state);
-    assert(0 && "unexpected current state");
-    break;
-  }
 
-  return current_state;
+    return current_state;
 }
 
 static void *onLOGIN_FAILED(void *argv) {
@@ -186,17 +187,17 @@ static void *onLOGIN_FAILED(void *argv) {
 }
 
 static void *onLOGIN_PROMPT_FOUND(void *argv) {
-  statemachine_arg_t *args = (statemachine_arg_t *)argv;
-  write(args->fd, args->username, strlen(args->username));
-  write(args->fd, "\n", 1);
-  return NULL;
+    serialcon_connection *args = (serialcon_connection *)argv;
+    write(args->fd, args->username, strlen(args->username));
+    write(args->fd, "\n", 1);
+    return NULL;
 }
 
 static void *onPASSWORD_PROMPT_FOUND(void *argv) {
-  statemachine_arg_t *args = (statemachine_arg_t *)argv;
-  write(args->fd, args->password, strlen(args->password));
-  write(args->fd, "\n", 1);
-  return NULL;
+    serialcon_connection *args = (serialcon_connection *)argv;
+    write(args->fd, args->password, strlen(args->password));
+    write(args->fd, "\n", 1);
+    return NULL;
 }
 
 static void *onROOT_PROMPT_FOUND(void *argv) {
@@ -204,41 +205,43 @@ static void *onROOT_PROMPT_FOUND(void *argv) {
 }
 
 static void *onUSER_PROMPT_FOUND(void *argv) {
-  statemachine_arg_t *args = (statemachine_arg_t *)argv;
+    serialcon_connection *args = (serialcon_connection *)argv;
 
-  typedef enum {
-    SUBSTATE_COMMAND_EXECUTION_UNDEFINED = 0,
-    SUBSTATE_COMMAND_EXECUTION_ONGOING = 100,
-  } substate_e;
+    typedef enum {
+        SUBSTATE_COMMAND_EXECUTION_UNDEFINED = 0,
+        SUBSTATE_COMMAND_EXECUTION_ONGOING = 100,
+    } substate_e;
 
-  static substate_e substate = SUBSTATE_COMMAND_EXECUTION_UNDEFINED;
-  switch (substate) {
-  case SUBSTATE_COMMAND_EXECUTION_UNDEFINED: {
-    command_t *cmd = next_cmd();
-    if (!cmd) {
-      const char logout_cmd[] = "exit\n";
-      fprintf(stderr, "%s:%u: no command found\n", __FILE__, __LINE__);
-      write(args->fd, logout_cmd, strlen(logout_cmd));
-      args->finished = true;
-      break;
-    } else if (strstr(cmd->cmdline, "sudo reboot") != NULL) {
-      args->reboot = true;
-    }
-    fprintf(stderr, "%s:%u: command %s found\n", __FILE__, __LINE__,
-            cmd->cmdline);
-    write(args->fd, cmd->cmdline, strlen(cmd->cmdline));
-    substate = SUBSTATE_COMMAND_EXECUTION_ONGOING;
-    break;
-  }
-  case SUBSTATE_COMMAND_EXECUTION_ONGOING: {
-    char buffer[4096];
-    snprintf(buffer, sizeof(buffer),
-             "if [[ $? -eq 0 ]]; then echo CMD-EXECUTION-RESULT-OK; else echo "
-             "CMD-EXECUTION-RESULT-FAILED;fi \n");
-    substate = SUBSTATE_COMMAND_EXECUTION_UNDEFINED;
-    write(args->fd, buffer, strlen(buffer));
-    break;
-  }
+    static substate_e substate = SUBSTATE_COMMAND_EXECUTION_UNDEFINED;
+    switch (substate) {
+        case SUBSTATE_COMMAND_EXECUTION_UNDEFINED: {
+            command_t *cmd = next_cmd(args);
+            if (!cmd) {
+                const char logout_cmd[] = "exit\n";
+                fprintf(stderr, "%s:%u: no command found\n", __FILE__,
+                        __LINE__);
+                write(args->fd, logout_cmd, strlen(logout_cmd));
+                args->finished = true;
+                break;
+            } else if (strstr(cmd->cmdline, "sudo reboot") != NULL) {
+                args->reboot = true;
+            }
+            fprintf(stderr, "%s:%u: command %s found\n", __FILE__, __LINE__,
+                    cmd->cmdline);
+            write(args->fd, cmd->cmdline, strlen(cmd->cmdline));
+            substate = SUBSTATE_COMMAND_EXECUTION_ONGOING;
+            break;
+        }
+        case SUBSTATE_COMMAND_EXECUTION_ONGOING: {
+            char buffer[4096];
+            snprintf(buffer, sizeof(buffer),
+                     "if [[ $? -eq 0 ]]; then echo CMD-EXECUTION-RESULT-OK; "
+                     "else echo "
+                     "CMD-EXECUTION-RESULT-FAILED;fi \n");
+            substate = SUBSTATE_COMMAND_EXECUTION_UNDEFINED;
+            write(args->fd, buffer, strlen(buffer));
+            break;
+        }
   }
 
   return argv;
@@ -307,21 +310,20 @@ static transition_t transitions[] = {
     },
 };
 
-static state_e check_transition(statemachine_arg_t *argv, state_e current_state,
+static state_e check_transition(serialcon_connection *conn, state_e current_state,
                                 int token) {
   for (size_t i = 0; i < sizeof(transitions) / sizeof(transitions[0]); ++i) {
     transition_t *t = &transitions[i];
     if (t->from == current_state && t->keyword == token) {
       current_state = t->to;
-      t->action(argv);
-      if (argv->reboot) {
-        return STATE_REBOOT;
-      } else if (argv->finished) {
-        return STATE_EXIT;
+      t->action(conn);
+      if (conn->reboot) {
+          return STATE_REBOOT;
+      } else if (conn->finished) {
+          return STATE_EXIT;
       }
       return t->to;
     }
   }
   return current_state;
 }
-

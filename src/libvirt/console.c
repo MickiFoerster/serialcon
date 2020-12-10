@@ -18,9 +18,7 @@
 #include <unistd.h>
 
 #include "lexer.h"
-#include "serialcon/statemachine.h"
 #include "serialcon/serialcon.h"
-#include "serialcon/commands.h"
 
 #define RETURN_CODE_ERROR -1
 #define RETURN_CODE_OK 0
@@ -50,12 +48,7 @@ static void *thread_wait_for_child_process(void *argv) {
 
 static void *statemachine_thread(void *argv) {
     serialcon_connection *conn = (serialcon_connection *)argv;
-    statemachine_arg_t statemachine_args = {
-        .fd = conn->fd,
-        .username = conn->username,
-        .password = conn->password,
-    };
-    statemachine_init(&statemachine_args);
+    statemachine_init();
     conn->lexer_instance = lexer_init(conn->fd, 5000);
     int token;
     fprintf(stderr, "DEBUG: before loop %d\n",
@@ -70,7 +63,7 @@ static void *statemachine_thread(void *argv) {
 
         pthread_mutex_lock(&conn->mtx_new_state);
         {
-            conn->new_state = statemachine_next(token);
+            conn->new_state = statemachine_next(conn, token);
             pthread_cond_signal(&conn->new_state_available);
         }
         pthread_mutex_unlock(&conn->mtx_new_state);

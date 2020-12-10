@@ -1,5 +1,4 @@
 #include "serialcon/serialcon.h"
-#include "serialcon/commands.h"
 #include "console.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,9 +34,9 @@ void serialcon_Close(serialcon_connection *conn) {
 
 int serialcon_Run(serialcon_connection *conn, const char *cmd) {
   fprintf(stderr, "serialcon_Run\n");
-  if (!add_command(cmd)) {
-    fprintf(stderr, "error: could not add command\n");
-    exit(EXIT_FAILURE);
+  if (!add_command(conn, cmd)) {
+      fprintf(stderr, "error: could not add command\n");
+      exit(EXIT_FAILURE);
   }
 
   int rc = -1;
@@ -53,7 +52,7 @@ int serialcon_Run(serialcon_connection *conn, const char *cmd) {
       case 0:
           break;
       case 1: {
-          command_t *cmd = failed_cmd();
+          command_t *cmd = failed_cmd(conn);
           if (!cmd) break;
           printf("Command '");
           for (int i = 0; i < strlen(cmd->cmdline); ++i) {
@@ -76,7 +75,7 @@ int serialcon_Run(serialcon_connection *conn, const char *cmd) {
           break;
   }
 
-  free_cmd_list();
+  free_cmd_list(conn);
   return 0;
 }
 
