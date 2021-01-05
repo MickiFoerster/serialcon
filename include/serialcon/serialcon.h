@@ -66,4 +66,5 @@ command_t *failed_cmd(serialcon_connection *conn);
 
 void statemachine_init();
 state_e statemachine_next(serialcon_connection *conn, int token);
+const char *statemachine_getName(state_e state);
 

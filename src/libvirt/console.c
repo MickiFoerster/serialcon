@@ -187,7 +187,8 @@ int libvirt_console_run(serialcon_connection *conn, const char *cmd) {
     for (; !stop;) {
         pthread_mutex_lock(&conn->mtx_new_state);
         pthread_cond_wait(&conn->new_state_available, &conn->mtx_new_state);
-        fprintf(stderr, "statemachine has new state: %d\n", conn->new_state);
+        fprintf(stderr, "statemachine has new state: %s\n",
+                statemachine_getName(conn->new_state));
         if (conn->new_state == STATE_EXIT ||
             conn->new_state == STATE_LOGIN_FAILED ||
             conn->new_state == STATE_COMMAND_EXECUTION_FAILED ||

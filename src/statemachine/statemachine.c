@@ -327,3 +327,35 @@ static state_e check_transition(serialcon_connection *conn, state_e current_stat
   }
   return current_state;
 }
+
+const char *statemachine_getName(state_e state) {
+    const char *p = NULL;
+    switch (state) {
+        case STATE_UNDEFINED:
+            return "STATE_UNDEFINED";
+        case STATE_ERROR:
+            return "STATE_ERROR";
+        case STATE_LOGIN_PROMPT_FOUND:
+            return "STATE_LOGIN_PROMPT_FOUND";
+        case STATE_LOGIN_FAILED:
+            return "STATE_LOGIN_FAILED";
+        case STATE_PASSWORD_PROMPT_FOUND:
+            return "STATE_PASSWORD_PROMPT_FOUND";
+        case STATE_PASSWORD_SUDO_PROMPT:
+            return "STATE_PASSWORD_SUDO_PROMPT";
+        case STATE_USER_PROMPT_FOUND:
+            return "STATE_USER_PROMPT_FOUND";
+        case STATE_ROOT_PROMPT_FOUND:
+            return "STATE_ROOT_PROMPT_FOUND";
+        case STATE_EXIT:
+            return "STATE_EXIT";
+        case STATE_COMMAND_EXECUTION_FAILED:
+            return "STATE_COMMAND_EXECUTION_FAILED";
+        case STATE_COMMAND_EXECUTION_OK:
+            return "STATE_COMMAND_EXECUTION_OK";
+        case STATE_REBOOT:
+            return "STATE_REBOOT";
+    }
+    return p;
+}
+
