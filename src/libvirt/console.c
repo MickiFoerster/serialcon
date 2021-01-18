@@ -58,7 +58,8 @@ static void *statemachine_thread(void *argv) {
         do {
             if (conn->stopThreadParentStatemachine != 0) break;
             token = lexer(conn->lexer_instance);
-            fprintf(stderr, "lexer returned %d\n", token);
+            fprintf(stderr, "lexer returned token '%s'\n",
+                    patterns_get_pattern_from_ID(token));
         } while (token == -1);
 
         pthread_mutex_lock(&conn->mtx_new_state);
